@@ -1,4 +1,4 @@
-const { createClient } = require('@sanity/client');
+import { createClient } from '@sanity/client';
 
 const PROJECT_ID = process.env.SANITY_PROJECT_ID || 'e9j72tow';
 const DATASET = process.env.SANITY_DATASET || 'production';
@@ -12,7 +12,7 @@ const client = createClient({
   token: API_TOKEN,
 });
 
-const QUERY = `*[_type == "dashboardAccount"][0]{
+const QUERY = `*[_id == "dashboardAccount"][0]{
   _id,
   customerName,
   accountNumber,

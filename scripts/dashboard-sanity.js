@@ -61,7 +61,8 @@
     (data.accounts || []).forEach(function (account, i) {
       setText('account-' + i + '-name', account.name);
       setText('account-' + i + '-number', account.accountNumber);
-      setText('account-' + i + '-balance', formatCurrency(account.balance));
+      var bal = account.currentBalance !== undefined && account.currentBalance !== null ? account.currentBalance : account.balance;
+      setText('account-' + i + '-balance', formatCurrency(bal));
       setText('account-' + i + '-label', account.balanceLabel);
     });
 
@@ -101,7 +102,7 @@
   }
 
   function load() {
-    var url = 'https://' + PROJECT_ID + '.apicdn.sanity.io/' + API_VERSION + '/data/query/' + DATASET +
+    var url = 'https://' + PROJECT_ID + '.api.sanity.io/' + API_VERSION + '/data/query/' + DATASET +
       '?query=' + encodeURIComponent('*[_id == "dashboardAccount"][0]');
     fetch(url, { method: 'GET', cache: 'no-store' })
       .then(function (res) {
@@ -111,8 +112,8 @@
       .then(function (json) {
         applyDashboard(json && json.result);
       })
-      .catch(function () {
-        // Fallback: existing hardcoded dashboard values remain visible.
+      .catch(function (err) {
+        console.error('Sanity dashboard fetch failed:', err && err.message ? err.message : err);
       });
   }
 
