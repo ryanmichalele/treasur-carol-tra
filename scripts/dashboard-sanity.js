@@ -101,6 +101,10 @@
     setHref('auctionsButtonHref', data.auctionsButtonHref);
   }
 
+  var lastRev = null;
+  var pollId = null;
+  var POLL_MS = 5000;
+
   function load() {
     var url = 'https://' + PROJECT_ID + '.api.sanity.io/' + API_VERSION + '/data/query/' + DATASET +
       '?query=' + encodeURIComponent('*[_id == "dashboardAccount"][0]');
@@ -110,16 +114,37 @@
         return res.json();
       })
       .then(function (json) {
-        applyDashboard(json && json.result);
+        var result = json && json.result;
+        if (result && result._rev && result._rev === lastRev) return;
+        if (result && result._rev) lastRev = result._rev;
+        else if (result && result._updatedAt) lastRev = result._updatedAt;
+        applyDashboard(result);
       })
       .catch(function (err) {
         console.error('Sanity dashboard fetch failed:', err && err.message ? err.message : err);
       });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', load);
-  } else {
+  function startPoll() {
+    if (pollId) return;
+    pollId = setInterval(function () {
+      if (document.visibilityState === 'hidden') return;
+      load();
+    }, POLL_MS);
+  }
+
+  function init() {
     load();
+    startPoll();
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') load();
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 })();
